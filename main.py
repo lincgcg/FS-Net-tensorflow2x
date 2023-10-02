@@ -48,7 +48,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
-def main(_):
+def main():
     config = get_args()
     if config.length_num == 'auto':
         config.length_num = config.max_packet_length // config.length_block + 4
@@ -69,4 +69,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    main()
