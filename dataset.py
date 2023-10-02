@@ -44,7 +44,7 @@ def get_dataset_from_generator(file, config, max_len, keep_ratio=1):
 def _get_summary(metric):
     summ = []
     for met in metric:
-        sx = tf.Summary(value=[tf.Summary.Value(tag=met, simple_value=metric[met])])
+        sx = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=met, simple_value=metric[met])])
         summ.append(sx)
     return summ
 

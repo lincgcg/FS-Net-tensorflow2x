@@ -28,34 +28,34 @@ def train(config):
     print('[Decay Step]:', config.decay_step)
     print('[Length Num]:', config.length_num)
 
-    handle = tf.placeholder(tf.string, shape=[])
-    iterator = tf.data.Iterator.from_string_handle(
+    handle = tf.compat.v1.placeholder(tf.string, shape=[])
+    iterator = tf.compat.v1.data.Iterator.from_string_handle(
         handle, train_dataset.output_types, train_dataset.output_shapes)
-    train_iterator = train_dataset.make_one_shot_iterator()
-    dev_app_iterator = dev_dataset.make_one_shot_iterator()
+    train_iterator = tf.compat.v1.data.make_one_shot_iterator(train_dataset)
+    dev_app_iterator = tf.compat.v1.data.make_one_shot_iterator(dev_dataset)
     rnn_classify = model.FSNet(config, iterator)
 
-    for v in tf.trainable_variables():
+    for v in tf.compat.v1.trainable_variables():
         if v.shape.dims is None:
             print('%65s%5s' % (v.name, ' ' * 5), None)
         else:
             print('%65s%10d' % (v.name, functools.reduce(lambda x, y: x * y, v.shape)))
 
-    sess_config = tf.ConfigProto(allow_soft_placement=True)
+    sess_config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
 
     loss_step = config.loss_save
     lr = config.learning_rate
 
-    with tf.Session(config=sess_config) as sess:
-        writer = tf.summary.FileWriter(config.log_dir)
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver(tf.trainable_variables())
+    with tf.compat.v1.Session(config=sess_config) as sess:
+        writer = tf.compat.v1.summary.FileWriter(config.log_dir)
+        sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver(tf.compat.v1.trainable_variables())
 
         train_handle = sess.run(train_iterator.string_handle())
         dev_app_handle = sess.run(dev_app_iterator.string_handle())
 
         sess.run(rnn_classify.train_false)
-        sess.run(tf.assign(rnn_classify.lr, tf.constant(lr, dtype=tf.float32)))
+        sess.run(tf.compat.v1.assign(rnn_classify.lr, tf.constant(lr, dtype=tf.float32)))
         # writer.add_graph(sess.graph)
 
         for _ in tqdm(range(config.iter_num), ascii=True, desc='Training'):
@@ -64,7 +64,7 @@ def train(config):
             loss, _, clr = sess.run([rnn_classify.loss, rnn_classify.train_op, rnn_classify.clr],
                                     feed_dict={handle: train_handle})
             if not (global_step % loss_step):  # save loss
-                loss_sum = tf.Summary(value=[tf.Summary.Value(tag='model/loss', simple_value=loss)])
+                loss_sum = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag='model/loss', simple_value=loss)])
                 writer.add_summary(loss_sum, global_step)
 
             if not (global_step % config.checkpoint):  # save model and compute train and test
@@ -83,7 +83,7 @@ def train(config):
                     writer.add_summary(s, global_step)
                 sess.run(rnn_classify.train_true)
 
-                lr_sum = tf.Summary(value=[tf.Summary.Value(tag='lr', simple_value=clr)])
+                lr_sum = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag='lr', simple_value=clr)])
                 writer.add_summary(lr_sum, global_step)
                 writer.flush()
 
@@ -111,17 +111,17 @@ def _predict_test(sess, model, num, class_num):
 
 def predict(config):
     test_dataset = get_dataset_from_generator(config.test_json, config, config.max_flow_length_test)
-    test_dataset = test_dataset.make_one_shot_iterator()
+    test_dataset = tf.compat.v1.data.make_one_shot_iterator(test_dataset)
     with open(config.test_meta) as fp:
         test_num = int(fp.read().strip())
 
     rnn_classify = model.FSNet(config, test_dataset, trainable=False)
 
-    sess_config = tf.ConfigProto(allow_soft_placement=True)
+    sess_config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
 
-    with tf.Session(config=sess_config) as sess:
-        sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver(tf.trainable_variables())
+    with tf.compat.v1.Session(config=sess_config) as sess:
+        sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver(tf.compat.v1.trainable_variables())
         saver.restore(sess, tf.train.latest_checkpoint(config.test_model_dir))
 
         sess.run(rnn_classify.train_false)
