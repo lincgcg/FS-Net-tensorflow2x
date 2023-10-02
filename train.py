@@ -30,8 +30,7 @@ def train(config):
     print('[Length Num]:', config.length_num)
 
     handle = tf.compat.v1.placeholder(tf.string, shape=[])
-    iterator = tf.compat.v1.data.Iterator.from_string_handle(
-        handle, train_dataset.output_types, train_dataset.output_shapes)
+    iterator = tf.compat.v1.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
     train_iterator = tf.compat.v1.data.make_one_shot_iterator(train_dataset)
     dev_app_iterator = tf.compat.v1.data.make_one_shot_iterator(dev_dataset)
     
