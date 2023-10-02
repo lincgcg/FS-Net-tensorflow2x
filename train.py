@@ -33,7 +33,9 @@ def train(config):
         handle, train_dataset.output_types, train_dataset.output_shapes)
     train_iterator = tf.compat.v1.data.make_one_shot_iterator(train_dataset)
     dev_app_iterator = tf.compat.v1.data.make_one_shot_iterator(dev_dataset)
+    
     rnn_classify = model.FSNet(config, iterator)
+    # rnn_classify = moel.FSNet(config, iterator)
 
     for v in tf.compat.v1.trainable_variables():
         if v.shape.dims is None:
