@@ -5,6 +5,7 @@ import json
 import model
 import os
 import functools
+tf.compat.v1.disable_eager_execution()
 
 from dataset import accuracy, get_dataset_from_generator
 import eval
